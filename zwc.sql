@@ -3,7 +3,7 @@
 -- http://www.phpmyadmin.net
 --
 -- Client :  localhost
--- Généré le :  Lun 30 Avril 2018 à 23:14
+-- Généré le :  Mer 02 Mai 2018 à 18:24
 -- Version du serveur :  5.7.22-0ubuntu0.16.04.1
 -- Version de PHP :  7.0.28-0ubuntu0.16.04.1
 
@@ -27,26 +27,11 @@ SET time_zone = "+00:00";
 --
 
 CREATE TABLE `action` (
-  `id` int(11) NOT NULL,
-  `title_fr` varchar(300) NOT NULL COMMENT 'Titre de l''action en français',
-  `title_en` varchar(300) NOT NULL COMMENT 'Titre de l''action en anglais',
-  `pros_fr` text NOT NULL COMMENT 'Avantages en français',
-  `pros_en` int(11) NOT NULL COMMENT 'Avantages en anglais',
-  `content_fr` text NOT NULL COMMENT 'Contenu de la fiche en français',
-  `content_en` int(11) NOT NULL COMMENT 'Contenu de la fiche en anglais',
-  `carbon_footprint` int(11) NOT NULL COMMENT 'Empreinte carbone en kg eq. CO2'
-) ENGINE=InnoDB DEFAULT CHARSET=latin1 COMMENT='Action à réaliser par l''utilisateur';
-
--- --------------------------------------------------------
-
---
--- Structure de la table `action_category`
---
-
-CREATE TABLE `action_category` (
-  `action_id` int(11) NOT NULL,
-  `category_id` int(11) NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=latin1 COMMENT='Catégories d''une action';
+  `ac_id` int(11) NOT NULL,
+  `ac_carbon_footprint` int(11) NOT NULL COMMENT 'Empreinte carbone en kg eq. CO2',
+  `ac_picture` int(11) NOT NULL,
+  `ac_category` int(11) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=latin1 COMMENT='Action ou recette à réaliser par l''utilisateur';
 
 -- --------------------------------------------------------
 
@@ -55,8 +40,8 @@ CREATE TABLE `action_category` (
 --
 
 CREATE TABLE `action_rating` (
-  `user_id` int(11) NOT NULL,
-  `action_id` int(11) NOT NULL,
+  `ar_user_id` int(11) NOT NULL COMMENT 'Id de l''utilisateur notant une page',
+  `action_id` int(11) NOT NULL COMMENT 'Id de l''action notée par l''utilisateur',
   `duration` int(11) NOT NULL COMMENT 'Durée de réalisation d''une action',
   `cost` int(11) NOT NULL COMMENT 'Coût de réalisation d''une action',
   `difficulty` int(11) NOT NULL COMMENT 'Difficulté de réalisation d''une action',
@@ -70,9 +55,75 @@ CREATE TABLE `action_rating` (
 --
 
 CREATE TABLE `category` (
-  `id` int(11) NOT NULL,
-  `name_fr` varchar(200) NOT NULL,
-  `name_en` varchar(200) NOT NULL
+  `cat_id` int(11) NOT NULL,
+  `cat_title_fr` varchar(200) NOT NULL COMMENT 'Titre de catégorie en français',
+  `cat_title_en` varchar(200) NOT NULL COMMENT 'Titre de catégorie en anglais'
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+
+-- --------------------------------------------------------
+
+--
+-- Structure de la table `comment_rating`
+--
+
+CREATE TABLE `comment_rating` (
+  `cr_id` int(11) NOT NULL,
+  `cr_date` date NOT NULL COMMENT 'Date de notation d''un commentaire',
+  `cr_user_id` int(11) NOT NULL COMMENT 'Id de l''utilisateur notant le commentaire',
+  `cr_pc_id` int(11) NOT NULL COMMENT 'Id du commentaire noté',
+  `cr_rating` int(11) NOT NULL COMMENT 'Note du commentaire par l''utilisateur'
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+
+-- --------------------------------------------------------
+
+--
+-- Structure de la table `keyword`
+--
+
+CREATE TABLE `keyword` (
+  `key_id` int(11) NOT NULL,
+  `key_lang` int(11) NOT NULL COMMENT 'Langue du mot clé',
+  `key_title` int(11) NOT NULL COMMENT 'Titre du mot clé'
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+
+-- --------------------------------------------------------
+
+--
+-- Structure de la table `keyword_links`
+--
+
+CREATE TABLE `keyword_links` (
+  `kl_id` int(11) NOT NULL,
+  `kl_page_id` int(11) NOT NULL COMMENT 'Id de la page associée',
+  `kl_key_id` int(11) NOT NULL COMMENT 'Id du mot clé associé'
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+
+-- --------------------------------------------------------
+
+--
+-- Structure de la table `page`
+--
+
+CREATE TABLE `page` (
+  `page_id` int(11) NOT NULL,
+  `page_title` varchar(200) NOT NULL COMMENT 'Titre de la fiche dans sa langue',
+  `page_lang` int(11) NOT NULL COMMENT 'Langu de la fiche',
+  `page_ac_id` int(11) NOT NULL COMMENT 'action id correspondant',
+  `page_text_id` int(11) NOT NULL COMMENT 'Dernière version de contenu de la fiche'
+) ENGINE=InnoDB DEFAULT CHARSET=latin1 COMMENT='Fiche reliée à une action';
+
+-- --------------------------------------------------------
+
+--
+-- Structure de la table `page_comment`
+--
+
+CREATE TABLE `page_comment` (
+  `pc_id` int(11) NOT NULL,
+  `pc_date` int(11) NOT NULL COMMENT 'Date de publication du commentaire',
+  `pc_text_id` int(11) NOT NULL COMMENT 'Contenu du commentaire',
+  `pc_page_id` int(11) NOT NULL COMMENT 'Id de la page commentée',
+  `pc_user_id` int(11) NOT NULL COMMENT 'Id de l''utilisateur écrivant le commentaire'
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 -- --------------------------------------------------------
@@ -82,10 +133,47 @@ CREATE TABLE `category` (
 --
 
 CREATE TABLE `product` (
-  `id` int(11) NOT NULL,
-  `name` varchar(300) NOT NULL,
-  `picture` varchar(200) NOT NULL
+  `prod_id` int(11) NOT NULL,
+  `prod_title_fr` varchar(300) NOT NULL COMMENT 'Non du produit en français',
+  `prod_title_en` int(11) NOT NULL COMMENT 'Non du produit en anglais',
+  `prod_picture` varchar(200) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1 COMMENT='Produit pouvant être impacté par une action';
+
+-- --------------------------------------------------------
+
+--
+-- Structure de la table `product_links`
+--
+
+CREATE TABLE `product_links` (
+  `pl_id` int(11) NOT NULL,
+  `pl_ac_id` int(11) NOT NULL COMMENT 'Action d''id associé au produit',
+  `pl_prod_id` int(11) NOT NULL COMMENT 'Id de produit'
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+
+-- --------------------------------------------------------
+
+--
+-- Structure de la table `revision`
+--
+
+CREATE TABLE `revision` (
+  `rev_id` int(11) NOT NULL,
+  `rev_page` int(11) NOT NULL COMMENT 'Id de page/fiche associée',
+  `rev_text_id` int(11) NOT NULL COMMENT 'Id du texte associé à cette révision',
+  `rev_user` int(11) NOT NULL COMMENT 'Utilisateur ayant modifié la page'
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+
+-- --------------------------------------------------------
+
+--
+-- Structure de la table `text`
+--
+
+CREATE TABLE `text` (
+  `text_id` int(11) NOT NULL,
+  `text_content` text NOT NULL COMMENT 'Contenu de la fiche'
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 -- --------------------------------------------------------
 
@@ -94,11 +182,11 @@ CREATE TABLE `product` (
 --
 
 CREATE TABLE `user` (
-  `id` int(11) NOT NULL,
-  `login` varchar(200) NOT NULL,
-  `password` varchar(200) NOT NULL,
-  `email` varchar(200) NOT NULL,
-  `registration_date` date NOT NULL
+  `user_id` int(11) NOT NULL,
+  `user_login` varchar(200) NOT NULL,
+  `user_password` varchar(200) NOT NULL,
+  `user_mail` varchar(200) NOT NULL,
+  `user_registration_date` date NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1 COMMENT='Table des utilisateurs';
 
 -- --------------------------------------------------------
@@ -108,14 +196,14 @@ CREATE TABLE `user` (
 --
 
 CREATE TABLE `user_information` (
-  `user_id` int(11) NOT NULL,
-  `sexe` int(11) NOT NULL,
-  `birthdate` date NOT NULL,
-  `country` varchar(3) NOT NULL COMMENT 'country of living',
-  `city` varchar(100) NOT NULL,
-  `language` int(11) NOT NULL COMMENT 'application language',
-  `residence_type` int(11) NOT NULL COMMENT 'house, apartment, trailer, ...',
-  `children` tinyint(1) NOT NULL COMMENT 'children or not'
+  `ui_user_id` int(11) NOT NULL,
+  `ui_sex` int(11) NOT NULL,
+  `ui_birthdate` date NOT NULL,
+  `ui_country` varchar(3) NOT NULL COMMENT 'country of living',
+  `ui_city` varchar(100) NOT NULL,
+  `ui_language` int(11) NOT NULL COMMENT 'application language',
+  `ui_residence_type` int(11) NOT NULL COMMENT 'house, apartment, trailer, ...',
+  `ui_children` tinyint(1) NOT NULL COMMENT 'children or not'
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1 COMMENT='Informations personnelles utilisateurs';
 
 --
@@ -126,28 +214,73 @@ CREATE TABLE `user_information` (
 -- Index pour la table `action`
 --
 ALTER TABLE `action`
-  ADD PRIMARY KEY (`id`);
+  ADD PRIMARY KEY (`ac_id`);
 
 --
 -- Index pour la table `category`
 --
 ALTER TABLE `category`
-  ADD PRIMARY KEY (`id`);
+  ADD PRIMARY KEY (`cat_id`);
+
+--
+-- Index pour la table `keyword`
+--
+ALTER TABLE `keyword`
+  ADD PRIMARY KEY (`key_id`);
+
+--
+-- Index pour la table `keyword_links`
+--
+ALTER TABLE `keyword_links`
+  ADD PRIMARY KEY (`kl_id`);
+
+--
+-- Index pour la table `page`
+--
+ALTER TABLE `page`
+  ADD PRIMARY KEY (`page_id`);
+
+--
+-- Index pour la table `page_comment`
+--
+ALTER TABLE `page_comment`
+  ADD PRIMARY KEY (`pc_id`),
+  ADD KEY `pc_id` (`pc_id`),
+  ADD KEY `pc_id_2` (`pc_id`),
+  ADD KEY `pc_id_3` (`pc_id`);
 
 --
 -- Index pour la table `product`
 --
 ALTER TABLE `product`
-  ADD PRIMARY KEY (`id`),
-  ADD UNIQUE KEY `id` (`id`);
+  ADD PRIMARY KEY (`prod_id`),
+  ADD UNIQUE KEY `id` (`prod_id`);
+
+--
+-- Index pour la table `product_links`
+--
+ALTER TABLE `product_links`
+  ADD PRIMARY KEY (`pl_id`);
+
+--
+-- Index pour la table `revision`
+--
+ALTER TABLE `revision`
+  ADD PRIMARY KEY (`rev_id`);
+
+--
+-- Index pour la table `text`
+--
+ALTER TABLE `text`
+  ADD KEY `id` (`text_id`);
 
 --
 -- Index pour la table `user`
 --
 ALTER TABLE `user`
-  ADD PRIMARY KEY (`id`),
-  ADD UNIQUE KEY `id_2` (`id`),
-  ADD KEY `id` (`id`);
+  ADD PRIMARY KEY (`user_id`),
+  ADD UNIQUE KEY `id_2` (`user_id`),
+  ADD KEY `id` (`user_id`);
 
 --
 -- AUTO_INCREMENT pour les tables exportées
@@ -157,22 +290,57 @@ ALTER TABLE `user`
 -- AUTO_INCREMENT pour la table `action`
 --
 ALTER TABLE `action`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `ac_id` int(11) NOT NULL AUTO_INCREMENT;
 --
 -- AUTO_INCREMENT pour la table `category`
 --
 ALTER TABLE `category`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `cat_id` int(11) NOT NULL AUTO_INCREMENT;
+--
+-- AUTO_INCREMENT pour la table `keyword`
+--
+ALTER TABLE `keyword`
+  MODIFY `key_id` int(11) NOT NULL AUTO_INCREMENT;
+--
+-- AUTO_INCREMENT pour la table `keyword_links`
+--
+ALTER TABLE `keyword_links`
+  MODIFY `kl_id` int(11) NOT NULL AUTO_INCREMENT;
+--
+-- AUTO_INCREMENT pour la table `page`
+--
+ALTER TABLE `page`
+  MODIFY `page_id` int(11) NOT NULL AUTO_INCREMENT;
+--
+-- AUTO_INCREMENT pour la table `page_comment`
+--
+ALTER TABLE `page_comment`
+  MODIFY `pc_id` int(11) NOT NULL AUTO_INCREMENT;
 --
 -- AUTO_INCREMENT pour la table `product`
 --
 ALTER TABLE `product`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `prod_id` int(11) NOT NULL AUTO_INCREMENT;
+--
+-- AUTO_INCREMENT pour la table `product_links`
+--
+ALTER TABLE `product_links`
+  MODIFY `pl_id` int(11) NOT NULL AUTO_INCREMENT;
+--
+-- AUTO_INCREMENT pour la table `revision`
+--
+ALTER TABLE `revision`
+  MODIFY `rev_id` int(11) NOT NULL AUTO_INCREMENT;
+--
+-- AUTO_INCREMENT pour la table `text`
+--
+ALTER TABLE `text`
+  MODIFY `text_id` int(11) NOT NULL AUTO_INCREMENT;
 --
 -- AUTO_INCREMENT pour la table `user`
 --
 ALTER TABLE `user`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `user_id` int(11) NOT NULL AUTO_INCREMENT;
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
 /*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
